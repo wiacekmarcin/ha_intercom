@@ -1,6 +1,8 @@
 # kopia wspólnego kodu i zasobów z ha_kiosk_hol (sync_kiosk.sh przed budowaniem)
 kiosk/
 assets/
+# kopia gier z ha_kiosk_dzieci (sync_kiosk.sh)
+dzieci/
 # adres i token Home Assistant - nigdy do repozytorium
 settings.json
 # budowanie

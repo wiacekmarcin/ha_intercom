@@ -1,10 +1,12 @@
-"""HA Intercom - aplikacja testowa domofonu (tablet MT8768E, 192.168.10.22).
+"""HA Intercom - domofon i gry na Tablecie 2 (MT8768E, Android 12).
 
-Tylko wiadomości głosowe przez Home Assistant: przycisk "Przytrzymaj i mów" (do 30 s,
-licznik w dół) oraz odtwarzanie przychodzących wiadomości z zapowiedzią
-"Nowa wiadomość głosowa". Kod domofonu jest wspólny z kioskiem (kiosk/voice.py,
-kiosk/widgets/voice_dialog.py) - kopiowany przed budowaniem przez sync_kiosk.sh.
+Ekran domofonu: przycisk "Przytrzymaj i mów" (do 30 s, licznik w dół) i odtwarzanie
+przychodzących wiadomości po zapowiedzi "Nowa wiadomość głosowa". Menu po prawej:
+słuchawka - domofon, pad - gry (kółko i krzyżyk, warcaby, szachy, kostka, rysowanie),
+także przez sieć z innymi tabletami.
 
+Kod domofonu jest wspólny z kioskiem (kiosk/voice.py, kiosk/widgets/voice_dialog.py),
+a gry z Kioskiem dzieci (dzieci/games) - kopiowane przed budowaniem przez sync_kiosk.sh.
 Ustawienia: settings.json (url, token HA, tablet_name) wbudowany w APK.
 """
 import json
@@ -29,13 +31,19 @@ if IS_ANDROID:
 else:
     Config.set("graphics", "width", "1280")
     Config.set("graphics", "height", "800")
+# przycisk Wstecz cofa w aplikacji (GamesHost), nigdy jej nie zamyka
+Config.set("kivy", "exit_on_escape", "0")
 
 from kivy.app import App  # noqa: E402
 from kivy.core.window import Window  # noqa: E402
+from kivy.factory import Factory  # noqa: E402
 from kivy.lang import Builder  # noqa: E402
 from kivy.properties import BooleanProperty, NumericProperty, StringProperty  # noqa: E402
 from kivy.uix.boxlayout import BoxLayout  # noqa: E402
+from kivy.uix.screenmanager import NoTransition  # noqa: E402
 
+from dzieci.games import chess, checkers, dice, paint, tictactoe  # noqa: E402,F401 - klasy gier dla gry.kv
+from dzieci.games.host import GamesHost  # noqa: E402
 from kiosk import icons, voice  # noqa: E402
 from kiosk.widgets.voice_dialog import TalkMixin  # noqa: E402
 
@@ -51,17 +59,21 @@ class IntercomRoot(TalkMixin, BoxLayout):
     max_seconds = NumericProperty(voice.MAX_SECONDS)
 
 
-class IntercomApp(App):
+class IntercomApp(GamesHost, App):
     title = "HA Intercom"
     tablet_name = StringProperty("Tablet 2")
     voice_last = StringProperty("")
+    section = StringProperty("home")
 
     def build(self):
         Window.clearcolor = (0, 0, 0, 1)
         icons.register_font()
-        # intercom.kv Kivy wczytuje sam (nazwa jak IntercomApp); klasy z kiosku:
+        # klasy z kiosku, gry, potem własny ekran (ekran_intercom.kv celowo nie nazywa się
+        # intercom.kv - Kivy wczytałby go sam przed build(), zanim są klasy gier)
         for name in ("widgets.kv", "settings.kv", "voice_dialog.kv"):
             Builder.load_file(str(KV_DIR / name))
+        Builder.load_file(str(HERE / "dzieci" / "games" / "gry.kv"))
+        Builder.load_file(str(HERE / "ekran_intercom.kv"))
         self.voice = None
         self.voice_recorder = voice.Recorder()
         self.voice_player = voice.Player()
@@ -71,13 +83,24 @@ class IntercomApp(App):
         self.voice = voice.VoiceLink(settings, self.tablet_name, voice.cache_dir(),
                                      self._on_message)
         self.voice.start()
-        return IntercomRoot()
+        self.setup_games(settings, self.tablet_name)      # gra przez sieć z innymi tabletami
+        return Factory.IntercomMain()
 
     def on_start(self):
-        self.root.init_talk()
+        self.root.ids.talk.init_talk()
 
     def on_pause(self):
         return True                     # wygaszony ekran nie zamyka aplikacji
+
+    def nav(self, target: str):
+        """Menu: home - domofon, games - siatka gier, inna nazwa - ekran gry."""
+        sm = self.root.ids.sm
+        screen = "start" if target in ("home", "voice") else target
+        if sm.has_screen(screen):
+            self.leave_network_games(keep=screen)
+            sm.transition = NoTransition()
+            sm.current = screen
+            self.section = "home" if screen == "start" else "games"
 
     def _on_message(self, info, path):
         dur = info.get("duration")

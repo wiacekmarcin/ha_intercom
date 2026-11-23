@@ -12,6 +12,14 @@ mkdir -p assets
 cp -r "$KIOSK/kiosk" kiosk
 cp -r "$KIOSK/assets/fonts" assets/fonts
 cp -r "$KIOSK/assets/sounds" assets/sounds
+# gry (siatka gier, kółko i krzyżyk, warcaby, szachy, kostka, rysowanie) z ../ha_kiosk_dzieci
+DZIECI=../ha_kiosk_dzieci
+rm -rf dzieci
+cp -r "$DZIECI/dzieci" dzieci
+mkdir -p assets/icons
+cp "$DZIECI"/assets/icons/gra_*.png assets/icons/
+cp -r "$DZIECI/assets/fonts_dzieci" assets/fonts_dzieci
+find dzieci -name __pycache__ -type d -prune -exec rm -rf {} +
 find kiosk -name __pycache__ -type d -prune -exec rm -rf {} +
 python3 - "$KIOSK/settings.json" settings.json "$NAME" "$URL" <<'EOF'
 import json, sys
