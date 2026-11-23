@@ -1,0 +1,78 @@
+#:import config kiosk.config
+
+# Ekran aplikacji testowej domofonu: czarne tło, "Przytrzymaj i mów", ostatnia wiadomość
+<IntercomRoot>:
+    orientation: "vertical"
+    padding: [24, 16, 24, 24]
+    spacing: 10
+    canvas.before:
+        Color:
+            rgba: 0, 0, 0, 1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    BoxLayout:
+        size_hint_y: None
+        height: 64
+        spacing: 16
+        Icon:
+            icon: "phone"
+            font_size: "36sp"
+            color: config.COLOR_ACCENT
+            size_hint_x: None
+            width: 48
+        Label:
+            text: "Domofon - " + app.tablet_name
+            font_size: "26sp"
+            text_size: self.size
+            halign: "left"
+            valign: "middle"
+        Label:
+            text: app.ha_url
+            font_size: "15sp"
+            color: config.COLOR_TEXT_DIM
+            text_size: self.size
+            halign: "right"
+            valign: "middle"
+
+    Label:
+        text: "{} s".format(int(root.remaining)) if root.recording else "maks. {} s".format(int(root.max_seconds))
+        font_size: "64sp" if root.recording else "26sp"
+        bold: root.recording
+        color: (0.95, 0.35, 0.35, 1) if root.recording else config.COLOR_TEXT_DIM
+        size_hint_y: None
+        height: 90
+
+    AnchorLayout:
+        TalkButton:
+            active: root.recording
+            enabled: root.can_record
+            on_press: root.press()
+            on_release: root.release()
+
+    Label:
+        text: root.status
+        font_size: "22sp"
+        size_hint_y: None
+        height: 40
+
+    BoxLayout:
+        size_hint_y: None
+        height: 64
+        spacing: 16
+        opacity: 1 if app.voice_last else 0
+        disabled: not app.voice_last
+        Widget:
+        Label:
+            text: "Ostatnia wiadomość: " + app.voice_last
+            font_size: "19sp"
+            color: config.COLOR_TEXT_DIM
+            size_hint_x: None
+            width: self.texture_size[0]
+        SettingsButton:
+            icon: "play"
+            text: "Odtwórz ponownie"
+            pos_hint: {"center_y": 0.5}
+            on_release: root.replay()
+        Widget:
