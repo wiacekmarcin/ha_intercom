@@ -2,7 +2,7 @@
 title = HA Intercom
 package.name = haintercom
 package.domain = pl.mieszkanie
-version = 0.8
+version = 0.13
 
 source.dir = .
 source.include_exts = py,png,kv,ttf,json,ogg

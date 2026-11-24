@@ -115,6 +115,13 @@
         ChessScreen:
         DiceScreen:
         PaintScreen:
+        DotsScreen:
+        ShipsScreen:
+        PolishDotsScreen:
+        TetrisScreen:
+        SnakeScreen:
+        FootballScreen:
+        MusicScreen:
     BoxLayout:
         orientation: "vertical"
         size_hint_x: None
@@ -135,4 +142,8 @@
             # gamepad-variant - siatka gier
             code: 0xF0297
             target: "games"
+        IntercomRailButton:
+            # music - piosenki dla dzieci
+            code: 0xF075A
+            target: "music"
         Widget:

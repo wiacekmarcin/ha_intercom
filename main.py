@@ -31,7 +31,8 @@ if IS_ANDROID:
 else:
     Config.set("graphics", "width", "1280")
     Config.set("graphics", "height", "800")
-# przycisk Wstecz cofa w aplikacji (GamesHost), nigdy jej nie zamyka
+# Esc nie zamyka aplikacji na PC; przyciski tabletu obsługuje GamesHost (systemowo tylko na
+# ekranie domofonu)
 Config.set("kivy", "exit_on_escape", "0")
 
 from kivy.app import App  # noqa: E402
@@ -42,8 +43,9 @@ from kivy.properties import BooleanProperty, NumericProperty, StringProperty  # 
 from kivy.uix.boxlayout import BoxLayout  # noqa: E402
 from kivy.uix.screenmanager import NoTransition  # noqa: E402
 
-from dzieci.games import chess, checkers, dice, paint, tictactoe  # noqa: E402,F401 - klasy gier dla gry.kv
+from dzieci.games import chess, checkers, dice, dots, football, paint, pdots, ships, snake, tetris, tictactoe  # noqa: E402,F401 - klasy gier dla gry.kv
 from dzieci.games.host import GamesHost  # noqa: E402
+from dzieci.music import MusicPlayer  # noqa: E402
 from kiosk import icons, voice  # noqa: E402
 from kiosk.widgets.voice_dialog import TalkMixin  # noqa: E402
 
@@ -73,10 +75,12 @@ class IntercomApp(GamesHost, App):
         for name in ("widgets.kv", "settings.kv", "voice_dialog.kv"):
             Builder.load_file(str(KV_DIR / name))
         Builder.load_file(str(HERE / "dzieci" / "games" / "gry.kv"))
+        Builder.load_file(str(HERE / "dzieci" / "music" / "muzyka.kv"))
         Builder.load_file(str(HERE / "ekran_intercom.kv"))
         self.voice = None
         self.voice_recorder = voice.Recorder()
         self.voice_player = voice.Player()
+        self.music = MusicPlayer(self.voice_player)    # ekran Muzyka
         settings = json.loads((HERE / "settings.json").read_text(encoding="utf-8"))
         self.tablet_name = settings.get("tablet_name", "Tablet 2")
         self.ha_url = settings["url"]
@@ -87,6 +91,13 @@ class IntercomApp(GamesHost, App):
         return Factory.IntercomMain()
 
     def on_start(self):
+        # Android 12 (TCL): przy zimnym starcie powierzchnia GL powstaje po obrocie do
+        # poziomu, a statyczny ekran domofonu nie wymusza nowej klatki - zostaje czarny
+        # ekran do pierwszego dotyku. Odświeżanie co sekundę rysuje go zawsze.
+        from kivy.clock import Clock
+        Clock.schedule_interval(lambda _dt: Window.canvas.ask_update(), 1.0)
+        Window.bind(on_resize=lambda *_a: Clock.schedule_once(
+            lambda _dt: Window.canvas.ask_update(), 0.1))
         self.root.ids.talk.init_talk()
 
     def on_pause(self):
