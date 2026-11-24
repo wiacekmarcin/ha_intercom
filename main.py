@@ -46,6 +46,7 @@ from kivy.uix.screenmanager import NoTransition  # noqa: E402
 from dzieci.games import chess, checkers, dice, dots, football, paint, pdots, ships, snake, tetris, tictactoe  # noqa: E402,F401 - klasy gier dla gry.kv
 from dzieci.games.host import GamesHost  # noqa: E402
 from dzieci.music import MusicPlayer  # noqa: E402
+from dzieci import coloring  # noqa: E402,F401 - klasy kolorowanek dla kolorowanki.kv
 from kiosk import icons, voice  # noqa: E402
 from kiosk.widgets.voice_dialog import TalkMixin  # noqa: E402
 
@@ -76,6 +77,7 @@ class IntercomApp(GamesHost, App):
             Builder.load_file(str(KV_DIR / name))
         Builder.load_file(str(HERE / "dzieci" / "games" / "gry.kv"))
         Builder.load_file(str(HERE / "dzieci" / "music" / "muzyka.kv"))
+        Builder.load_file(str(HERE / "dzieci" / "coloring" / "kolorowanki.kv"))
         Builder.load_file(str(HERE / "ekran_intercom.kv"))
         self.voice = None
         self.voice_recorder = voice.Recorder()
