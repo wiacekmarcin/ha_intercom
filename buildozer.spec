@@ -2,7 +2,7 @@
 title = HA Intercom
 package.name = haintercom
 package.domain = pl.mieszkanie
-version = 0.14
+version = 0.23
 
 source.dir = .
 source.include_exts = py,png,kv,ttf,json,ogg
@@ -17,7 +17,7 @@ orientation = landscape
 fullscreen = 1
 
 # --- Android ---
-android.permissions = INTERNET, ACCESS_NETWORK_STATE, RECORD_AUDIO, WAKE_LOCK
+android.permissions = INTERNET, ACCESS_NETWORK_STATE, RECORD_AUDIO, WAKE_LOCK, ACCESS_WIFI_STATE, CHANGE_WIFI_MULTICAST_STATE
 android.api = 33
 android.minapi = 21
 android.ndk_api = 21

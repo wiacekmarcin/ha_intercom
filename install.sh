@@ -73,6 +73,8 @@ echo "INSTALL_OK"
 timeout 20 "$ADB" -s "$DEV" shell pm grant "$PKG" android.permission.RECORD_AUDIO 2>/dev/null
 timeout 20 "$ADB" -s "$DEV" shell cmd package set-home-activity "$PKG/org.kivy.android.PythonActivity" \
   > /dev/null 2>&1
+# przypinanie ekranu (tryb kiosku aplikacji): bez tej opcji Android ignoruje startLockTask
+timeout 20 "$ADB" -s "$DEV" shell settings put secure lock_to_app_enabled 1
 PUSH=../ha_kiosk_dzieci/tools/push_music.sh
 if [ "$MUSIC" = 1 ] && [ -d dzieci/music ] && [ -f "$PUSH" ] && [ -d "$MUSIC_SRC" ]; then
   echo "== piosenki"

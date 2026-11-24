@@ -47,6 +47,7 @@ from dzieci.games import chess, checkers, dice, dots, football, paint, pdots, sh
 from dzieci.games.host import GamesHost  # noqa: E402
 from dzieci.music import MusicPlayer  # noqa: E402
 from dzieci import coloring  # noqa: E402,F401 - klasy kolorowanek dla kolorowanki.kv
+from dzieci import kiosklock  # noqa: E402
 from kiosk import icons, voice  # noqa: E402
 from kiosk.widgets.voice_dialog import TalkMixin  # noqa: E402
 
@@ -101,12 +102,19 @@ class IntercomApp(GamesHost, App):
         Window.bind(on_resize=lambda *_a: Clock.schedule_once(
             lambda _dt: Window.canvas.ask_update(), 0.1))
         self.root.ids.talk.init_talk()
+        kiosklock.lock()                # tryb kiosku: Home i lista aplikacji nie wyprowadzają
 
     def on_pause(self):
         return True                     # wygaszony ekran nie zamyka aplikacji
 
+    def on_resume(self):
+        kiosklock.relock_later()        # po powrocie do aplikacji przypięcie wraca
+
     def nav(self, target: str):
         """Menu: home - domofon, games - siatka gier, inna nazwa - ekran gry."""
+        if target == "exit":            # wyjście z aplikacji (okno, 3 razy „Tak”)
+            kiosklock.ask_exit()
+            return
         sm = self.root.ids.sm
         screen = "start" if target in ("home", "voice") else target
         if sm.has_screen(screen):
